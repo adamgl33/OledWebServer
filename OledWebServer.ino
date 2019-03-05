@@ -18,7 +18,7 @@ String jsonPrettyString = "{}";
 String jsonString = "{}";
 const uint16_t MAX_JSON_SIZE = 1000;
 char receivedChars[MAX_JSON_SIZE]; // an array to store the received data
-
+const uint16_t DELAY = 600;
 
 typedef struct
 {
@@ -36,8 +36,7 @@ StatusBuffer sb = {17,20.0,true,true,false,""};
 void handleRoot()
 {
   Serial.println("{\"ACTION\": 0}");
-  recvSerialWithEndMarker();
-  server.send(200, "text/html", makeHtml());
+  waitRecvAndSendResponse();
 }
 
 void handleJSON()
@@ -48,47 +47,47 @@ void handleJSON()
 void handleTempUp()
 {
   Serial.println("{\"ACTION\": 1}");
-  recvSerialWithEndMarker();
-  server.send(200, "text/html", makeHtml());
+  waitRecvAndSendResponse();
 }
 void handleTempDown()
 {
   Serial.println("{\"ACTION\": 2}");
-  recvSerialWithEndMarker();
-  server.send(200, "text/html", makeHtml());
+  waitRecvAndSendResponse();
 }
 
 void handleLightsOn()
 {
   Serial.println("{\"ACTION\": 3}");
-  recvSerialWithEndMarker();
-  server.send(200, "text/html", makeHtml());
+  waitRecvAndSendResponse();
 }
 
 void handleLightsOff()
 {
   Serial.println("{\"ACTION\": 4}");
-  recvSerialWithEndMarker();
-  server.send(200, "text/html", makeHtml());
+  waitRecvAndSendResponse();
 }
 
 void handleAudioOn()
 {
   Serial.println("{\"ACTION\": 5}");
-  recvSerialWithEndMarker();
-  server.send(200, "text/html", makeHtml());
+  waitRecvAndSendResponse();
 }
 
 void handleAudioOff()
 {
   Serial.println("{\"ACTION\": 6}");
+  waitRecvAndSendResponse();
+}
+
+void waitRecvAndSendResponse() {
+  delay(DELAY);
   recvSerialWithEndMarker();
   server.send(200, "text/html", makeHtml());
 }
 
 void handleTest() 
 {
-  server.send(200, "text/html", makeTest());
+  server.send(200, "text/html", makeHtml());
 }
 void handleNotFound()
 {
@@ -225,9 +224,6 @@ void recvSerialWithEndMarker()
   }
 }
 
-// {"temp1":"12","temp2":"22"}
-//{"temp1":"12","temp2":"22","temp3":"33","array":[1.2,3.4],"p":[{"s":"1"},{"T":"2"}]}
-
 void processJSON()
 {
   StaticJsonBuffer<MAX_JSON_SIZE> jsonBuffer;
@@ -254,46 +250,18 @@ void processJSON()
 }
 
 
-String makeHtml() {
-String html = "<html>";
-html += "<p><a href=\"/\">Get Update</a></p>";
-html += "<p><a href=\"/temp/up\">Temp Up</a></p>";
-html += "<p><a href=\"/temp/down\">Temp Down</a></p>";
-html += "<p><a href=\"/lights/on\">Lights On</a></p>";
-html += "<p><a href=\"/lights/off\">Lights Off</a></p>";
-html += "<p><a href=\"/audio/on\">Audio On</a></p>";
-html += "<p><a href=\"/audio/off\">Audio Off</a></p>";
-html += "<p><a href=\"/json\">View JSON</a></p>";
-html += "<p><a href=\"/test\">Test HTML</a></p>";
-html += "<p>Current Temp: ";
-html += sb.averageCurrentTemp;
-html += "</p><p>Desired Temp: ";
-html += sb.desiredTemp;
-html += "</p><p>Lights On: ";
-html += sb.lightIsOn;
-html += "</p><p>Audio On: ";
-html += sb.audioIsOn;
-html += "</p><p>Cooler On: ";
-html += sb.coolerIsOn;
-html += "</p><p>Global Error: ";
-html += sb.globalError;
-html += "</p></html>";
 
-return html;
-}
-// {"DesiredTemp":15,"AverageCurrentTemp":22.2,"LightIsOn":0,"CoolerIsOn":0,"AudioIsOn":0,"GlobalError":"da error"}
-
-
-
-String makeTest () {
+String makeHtml () {
 
 String lightText = (sb.lightIsOn) ? "on" : "off";
 String lightSwitch = (sb.lightIsOn) ? "off" : "on";
-String lightButton = "<button type=\"button\" class=\"circ-button button-" + lightText + 
-" button-sound-" + lightText + "\"><a href=\"/lights/" + lightSwitch + "\"></a></button>";
+String lightButton = "<a href=\"/lights/" + lightSwitch + "\"><button type=\"button\" class=\"circ-button button-" +
+ lightText + " button-light-" + lightText + "\"></button></a>";
 
 String audioText = (sb.audioIsOn) ? "on" : "off";
-String coolerText = (sb.coolerIsOn) ? "on" : "off";
+String audioSwitch = (sb.audioIsOn) ? "off" : "on";
+String audioButton = "<a href=\"/audio/" + audioSwitch + "\"><button type=\"button\" class=\"circ-button button-" +
+ audioText + " button-sound-" + audioText + "\"></button></a>";
 
 
 String html = "<html>";
@@ -311,7 +279,7 @@ html += "html,body{font-family:Verdana,sans-serif;font-size:15px;line-height:1.5
 html += "html{overflow-x:hidden}";
 html += "body, html {height: 100%}";
 html += "";
-html += "h1{font-size:44px}";
+html += "h1{font-size:2.75em}";
 html += "h1,h2,h3,h4,h5,h6,button,span,.label {";
 html += " font-family: 'Montserrat', sans-serif;";
 html += " color:#1D6E6C;";
@@ -322,31 +290,31 @@ html += " text-align:center";
 html += "}";
 html += "";
 html += ".lable {";
-html += " font-size: 13px;";
+html += " font-size: 0.8em;";
 html += "}";
 html += "";
 html += ".temp-size {";
-html += " font-size:28px;";
+html += " font-size:1.75em;";
 html += "}";
 html += "";
 html += "h1{";
 html += " color:#E9F5ED!important;";
-html += " font-weight:800; ";
-html += " padding-left:8px;";
-html += " padding-right:8px;";
-html += " padding-top: 55px;";
+html += " font-weight:700; ";
+html += " padding-left:0.5em;";
+html += " padding-right:0.5em;";
+html += " padding-top: 1em;";
 html += "}";
 html += "";
 html += "h4{";
-html += " font-size: 20px;";
+html += " font-size: 1.25em;";
 html += " color: #E9F5ED;";
 html += " padding-bottom: 10px;";
 html += "}";
 html += "";
 html += ".temp-xlarge{";
-html += " font-size:52px!important; ";
+html += " font-size:3.25em!important; ";
 html += " color: #1D6E6C;";
-html += " font-weight: 800;";
+html += " font-weight: 700;";
 html += "}";
 html += "";
 html += "article,aside,details,figcaption,figure,footer,header,main,menu,nav,section,summary{display:block}";
@@ -365,16 +333,15 @@ html += ".button-temp {";
 html += "  color:#35B993;";
 html += "  background-color:#E9F5ED;";
 html += "  border: none;";
-html += "  width: 66px;";
-html += "  height: 56px;";
+html += "  padding: 0em 0.5em;";
 html += "  text-align: center;";
-html += "  font-size: 52px;";
+html += "  font-size: 3.25em;";
 html += "  cursor: pointer;";
-html += "  border-radius: 20%;";
+html += "  border-radius: 10%;";
 html += "  text-decoration: none;";
 html += "  text-align: center;";
 html += "  margin: auto;";
-html += "  line-height: 1.05;";
+html += "  line-height: 1.1em;";
 html += "}";
 html += "";
 html += ".button-temp:hover {";
@@ -390,8 +357,8 @@ html += "  text-decoration: none;";
 html += "  display: inline-block;";
 html += "  border-radius: 50%;";
 html += "  cursor: pointer;";
-html += "  width: 88px;";
-html += "  height: 88px;";
+html += "  width: 8em;";
+html += "  height: 8em;";
 html += "";
 html += "}";
 html += ".button-off {";
@@ -406,7 +373,6 @@ html += "  background-color: #77DBBE;";
 html += "  background-position:center;";
 html += "  background-repeat: no-repeat;";
 html += "  background-size: 70%;";
-html += "}";
 html += "}";
 html += "";
 html += ".button-light-off {";
@@ -437,32 +403,31 @@ html += "}";
 html += "";
 html += ".center {";
 html += "  margin: auto;";
-html += "  width: 96%;";
 html += "  text-align: center;";
 html += "}";
 html += "";
 html += ".temp-center {";
-html += " padding: 0px 20px;";
+html += " padding: 0em 1.25em;";
 html += "}";
 html += "";
 html += ".bgimg {";
 html += "  background-repeat: no-repeat;";
 html += "  background-size: cover;";
 html += "  background-image: url(\"http://hadasashkenazi.design/box/header_bg.svg\");";
-html += "  max-height: 400px;";
-html += "  min-height: 175px;";
+html += "  max-height: 25em;";
+html += "  min-height: 11em;";
 html += "}";
 html += "";
 html += ".set {";
-html += " padding: 14px;";
+html += " padding: 0.875em;";
 html += "}";
 html += "";
 html += ".separate {";
-html += " border-bottom: 2px solid; ";
+html += " border-bottom: 0.125em solid; ";
 html += " border-color: #E9F5ED;";
 html += " max-width: 400px;";
 html += " margin: auto;";
-html += " padding-top: 20px;";
+html += " padding-top: 1.25em;";
 html += "}";
 html += "";
 html += " </style>";
@@ -477,22 +442,18 @@ html += "     </header>";
 html += "     <div class=\"center\">";
 html += "       <div class=\"label set\">Set to</div>";
 html += "       <div class=\"center\">";
-html += "         <button type=\"button\" class=\"button-temp\"><a href=\"/temp/down\">-</a></button>";
+html += "         <a href=\"/temp/down\" class=\"button-temp\">-</a>";
 html += "         <span class=\"temp-center\"><span class=\"temp-xlarge\">";
 html += sb.desiredTemp;
 html += "°</span><span class=\"temp-size\">c</span></span>";
-html += "         <button type=\"button\" class=\"button-temp\"><a href=\"/temp/up\">+</a></button>";
+html += "         <a href=\"/temp/up\" class=\"button-temp\">+</a>";
 html += "         <div class=\"separate\"></div>";
 html += "       </div>";
 html += "       <div>";
 html += lightButton;
-// html += "          <button type=\"button\" class=\"circ-button button-";
-// html += lightText;
-// html += " button-light-";
-// html += lightText; 
-// html += "\"><a href=\"\"></a></button>";
-html += "         <button type=\"button\" class=\"circ-button button-off button-sound-off\"><a href=\"\"></a></button>";
-html += "         <span type=\"button\" class=\"circ-button button-off button-cooler-off\"></span>";
+html += audioButton;
+String coolerText = (sb.coolerIsOn) ? "on" : "off";
+html += "         <button type=\"button\" class=\"circ-button button-" + coolerText + " button-cooler-" + coolerText + "\"></button>";
 html += "         <div class=\"separate\"></div>";
 html += "       </div>";
 html += "       <div class=\"label set\">";
@@ -506,5 +467,4 @@ html += "</html>";
 
 return html;
 }
-
 // cat html  | sed 's/"/\\"/g' | sed 's/^/html += "/' | sed 's/$/";/'
